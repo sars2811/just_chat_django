@@ -1,0 +1,128 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="{% static 'jquery-3.6.0.js' %}"></script>
+    <!-- <script type="text/javascript">
+        window.onload = function() {
+        if(window.jQuery) {
+            alert('jquery  is loaded');
+        } else {
+            alert('jquery is not loaded')
+        }
+        }
+    </script> -->
+    <title>Just Chat</title>
+</head>
+<body>
+    <div id = "user-notices" >
+        <h1 id = "user-waiting-text" style="align-content: flex-start">Waiting for user</h1>
+        <!-- <span style="align-content:space-between"></span> -->
+        <h1 id = "user-disconnected">User disconnected! Find a new one</h1>
+    </div>
+    <div id = "chat-component">
+        <div id = "chat-log" ></div>
+        <input id = "chat-message-input" type = "text" size = "100">
+        <input id = "chat-message-submit" type = "button" value="Send">
+        <p id = "chat-message-typing">Typing...</p>
+    </div>
+
+        <script type="text/javascript">
+            $("#chat-component").hide();
+            $("#user-disconnected").hide();
+            const chatSocket = new WebSocket(
+                'ws://' + window.location.host + '/ws/chat/'
+            );
+
+            number_of_messages = 0;
+
+            // Handling the incoming messagses
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                const message_type = data.type;
+                console.log("Got websocket message" + e.data);
+                
+                if(message_type == "user.searching") {
+                    $("#chat-component").hide();
+                    $("#user-disconnected").hide();
+                    console.log("searching for a user");
+                }
+                else if(message_type == "user.found") {
+                    console.log("user found");
+                    $("#user-notices").hide();
+                    $("#chat-component").show();
+                    $("#chat-message-typing").hide();
+                }
+                else if(message_type == "user.typing") {
+                    number_of_messages += 1 ;
+                    if(number_of_messages%2 == 0) {
+                        $("#chat-message-typing").hide();
+                    }
+                    else(
+                        $("#chat-message-typing").show()
+                    )
+                    console.log("User is typing")
+                }
+                else if(message_type == "message.recieve") {
+                    console.log("Message recieved" + data.message)
+                    msg = "<div class = 'message' style = 'align-content: flex-start'>" + 
+                        "<span class='body'>" + data.message + "<span></span></span>" +
+                        "</div>";
+                    $("#chat-log").append(msg);
+                }
+                else if(message_type == "user.disconneted") {
+                    $("#chat-component").hide();
+                    $("#user-disconnected").show();
+                    $("#user-waiting-text").hide();
+                    console.log("User disconnected");
+                }
+            }
+
+            $("#chat-message-input").focusin(function() {
+                chatSocket.send(JSON.stringify({
+                    "type" : "typing" ,
+                }))
+            })
+
+            $("#chat-message-input").focusout(function() {
+                chatSocket.send(JSON.stringify({
+                    "type" : "typing" ,
+                }))
+            })
+
+            $("#chat-message-input").keyup(function(e) {
+                if(e.keyCode === 13) {
+                    $("#chat-message-submit").click();
+                }
+            });
+
+            $("#chat-message-submit").click(function(){
+                const message = $("#chat-message-input").val();
+                $("#chat-message-input").val('');
+                console.log(message);
+                chatSocket.send(JSON.stringify({
+                    "type" : "message" ,
+                    "message" : message ,
+                }));
+                msg = "<div class = 'message' style = 'align-content:space-between'>" + 
+                        "<span class='body' > <span></span>" + message + "</span>" +
+                        "</div>";
+                $("#chat-log").append(msg);
+                console.log("Message was sent")
+            });
+
+            chatSocket.onopen = function() {
+                console.log("Connected to websocket");
+            }
+
+            chatSocket.onclose = function() {
+                console.log("Disconnected from websocket");
+            }
+        </script>
+    
+</body>
+</html>
