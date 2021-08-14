@@ -8,27 +8,21 @@ from random import choice
 
 class ChatConsumer(WebsocketConsumer) : 
     user_channel_name = NULL
-    user_channel_layer = NULL
      
     def connect(self):
         if(Clients.objects.count() == 0):
             self.accept()
-            self.user_channel_layer = get_channel_layer()
             Clients.objects.create(channel_name = self.channel_name)
-            print(self.channel_name)
-            print("First Client added " + self.channel_name)
             self.send(json.dumps({
                 'type' : 'user.searching'
             }))
         else:
             ids = Clients.objects.values_list('id' , flat=True)
             random_id = choice(ids)
-            print(random_id)
             random_client = Clients.objects.get(id = random_id)
             self.user_channel_name = random_client.channel_name
             print(self.user_channel_name)
             self.accept()
-            print("Second Client added " + self.channel_name)
             self.send(json.dumps({
                 'type' : 'user.found'
             }))
@@ -42,10 +36,8 @@ class ChatConsumer(WebsocketConsumer) :
     def disconnect(self, code):
         print(code)
         if(self.user_channel_name == NULL):
-            print(code)
             Clients.objects.filter(channel_name = self.channel_name).delete()
         else:
-            print(code)
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.send) (self.user_channel_name , {
                 'type' : 'user.disconnect'
@@ -87,19 +79,16 @@ class ChatConsumer(WebsocketConsumer) :
         }))
 
     def user_disconnect(self , event):
-        print("A message was sent accross channel layer")
         self.send(json.dumps({
             'type' : 'user.disconnected'
         }))
     
     def user_typing(self , event):
-        print("A message was sent accross channel layer")
         self.send(json.dumps({
             'type' : 'user.typing'
         }))
 
     def message_recieve(self , event):
-        print("A message was sent accross channel layer")
         message = event['message']
         self.send(json.dumps({
             'type' : 'message.recieve',

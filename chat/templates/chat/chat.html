@@ -7,21 +7,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="{% static 'jquery-3.6.0.js' %}"></script>
-    <!-- <script type="text/javascript">
-        window.onload = function() {
-        if(window.jQuery) {
-            alert('jquery  is loaded');
-        } else {
-            alert('jquery is not loaded')
-        }
-        }
-    </script> -->
     <title>Just Chat</title>
 </head>
 <body>
     <div id = "user-notices" >
         <h1 id = "user-waiting-text" style="align-content: flex-start">Waiting for user</h1>
-        <!-- <span style="align-content:space-between"></span> -->
         <h1 id = "user-disconnected">User disconnected! Find a new one</h1>
     </div>
     <div id = "chat-component">
@@ -69,13 +59,14 @@
                 }
                 else if(message_type == "message.recieve") {
                     console.log("Message recieved" + data.message)
-                    msg = "<div class = 'message' style = 'align-content: flex-start'>" + 
-                        "<span class='body'>" + data.message + "<span></span></span>" +
+                    msg = "<div class = 'message'>" + 
+                        "<p style ='text-align : left' > " + data.message + "</p>" +
                         "</div>";
                     $("#chat-log").append(msg);
                 }
-                else if(message_type == "user.disconneted") {
+                else if(message_type == "user.disconnected") {
                     $("#chat-component").hide();
+                    $("#user-notices").show();
                     $("#user-disconnected").show();
                     $("#user-waiting-text").hide();
                     console.log("User disconnected");
@@ -108,8 +99,8 @@
                     "type" : "message" ,
                     "message" : message ,
                 }));
-                msg = "<div class = 'message' style = 'align-content:space-between'>" + 
-                        "<span class='body' > <span></span>" + message + "</span>" +
+                msg = "<div class = 'message'>" + 
+                        "<p style = 'text-align: right'>" + message + "</p>" +
                         "</div>";
                 $("#chat-log").append(msg);
                 console.log("Message was sent")
